@@ -1,0 +1,4 @@
+open comand line from Root directory:
+1- npm install
+2- npm start
+3-open chrome on http://localhost:81/index.html

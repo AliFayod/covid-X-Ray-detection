@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!-- import CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+<body>
+  <div id="app">
+    <el-container>
+        <el-header>
+          
+              <el-menu
+                :default-active="activeIndex2"
+                class="el-menu-demo"
+                mode="horizontal"
+                @select="handleSelect"
+                background-color="rgb(167,188,191)"
+                text-color="#000"
+                style="
+                  height: 90px;
+                  text-align: center;
+                  border-bottom-left-radius: 25px;
+                  border-top-right-radius: 25px;
+                  font-size: xx-large!important;
+                  padding: 10px;
+                "
+                active-text-color="#0000ff">
+                <el-menu-item>
+                    <el-image
+                        style="width: 60px; height: 60px"
+                        src="images/logo.png"
+                        fit="contin">
+                    </el-image>
+                </el-menu-item>
+                <el-menu-item index="1" style="color:rgb(255,255,255);font-size: 16px; font-weight: 600;">Covid19</el-menu-item>
+                <el-submenu index="2" style="color:rgb(255,255,255)">
+                  <template slot="title"><span style="color:rgb(255,255,255);font-size: 16px; font-weight: 600;">Model</span></template>
+                  <el-menu-item index="2-1" style="color:rgb(255,255,255);font-size: 16px; font-weight: 600;" @click='handleModelUpload()' v-model="model" value='CovidNet' v-loading.fullscreen.lock="loading">CovidNet</el-menu-item>
+                  <el-menu-item index="2-2" style="color:rgb(255,255,255);font-size: 16px; font-weight: 600;" disabled>next models comming soon</el-menu-item>
+                </el-submenu>
+                <el-menu-item index="3" @click='showInfo()'style="color:rgb(255,255,255);font-size: 16px; font-weight: 600;">Help</el-menu-item>
+              </el-menu>  
+                          
+        </el-header>
+        
+        <el-container id="cont" style="margin-top: 10px;margin-left: 20px;margin-right: 20px; padding: 25px;padding-top: 150px; background-color: white;padding-bottom: 50px;border-bottom-right-radius: 20px;">
+          <el-aside width="40%">
+            <h4 style="color: rgb(2,114,134);">Upload X-Ray Image here</h4>
+            <el-upload
+              ref="upload"
+              action=""
+              list-type="picture-card"
+              :auto-upload="autoup"
+              id="selected-image"
+              :limit="limit"
+              name="imageDataUploaded"
+              :on-change="changePhoto"
+              :on-preview="handlePictureCardPreview"
+              :on-remove="handleRemove">
+              <i class="el-icon-upload"></i>
+  
+            </el-upload>
+            <el-dialog :visible.sync="ImgdialogVisible">
+              <img width="100%" :src="dialogImageUrl" alt="">
+            </el-dialog>
+          </el-aside>
+
+
+          <el-container 
+            style="border-left: 1px solid #ccc ;" 
+            v-loading="loading2"
+            element-loading-text="Loading..."
+            element-loading-spinner="el-icon-loading"
+            element-loading-background="rgba(0, 0, 0, 0.8)">
+
+            <el-main style="margin-bottom: 200px; padding-left : 50px;">
+              <label style="color: rgb(2,114,134);"><h4>After Uploading X-Ray Image Click </h4></label>
+              <el-button type="primary" @click="handelPredict()" style="color:rgb(255,255,255);font-size: 16px; font-weight: 600;">Predict</el-button>
+              <br><br>
+              <i class="el-icon-circle-plus" v-if="status_covid" style="font-size:40px;color:red;"> COVID-19</i>
+              <i class="el-icon-remove" v-if="status_normal" style="font-size:40px;color:green;">COVID-19</i>
+            </el-main>
+          </el-container>          
+        </el-container> 
+
+      </el-container>
+      <el-footer style="background-color: rgb(167,188,191); margin-top:-20px;z-index:11;position:relative;color:#fff;text-align: center;margin-right: 20px;margin-left: 20px; padding:40px;height: 100px;border-bottom-left-radius: 25px; border-top-right-radius: 25px;">
+        <h4 style="margin-bottom: 50px!important;">&copy; copyrights for <a href="http://www.scs.org.sy" style="color:#fff" target="_blank">SCS </a> - 2020</h4>
+      </el-footer> 
+
+      <el-dialog
+        title="Tips"
+        :visible.sync="dialogVisible"
+        width="50%"
+        :before-close="handleClose">
+        <h4>Steps :</h4>
+        <el-steps :active="active" finish-status="success">
+            <el-step title="Step 1" description="choose CovidNet from Model Menu"></el-step>
+            <el-step title="Step 2" description="Upload your XRay photo"></el-step>
+            <el-step title="Step 3" description="Click Predict button and wait about 30 sec"></el-step>
+          </el-steps>
+          
+          <el-button style="margin-top: 12px;" @click="nextStep()">Next step</el-button>
+       
+        <span slot="footer" class="dialog-footer">
+            <el-button @click="dialogVisible = false">Close</el-button>
+            <el-button type="primary" @click="dialogVisible2 = true; dialogVisible=false; active=0">اللغة العربية</el-button>
+        </span>
+      </el-dialog>
+
+      <el-dialog
+        title="توجيهات"
+        :visible.sync="dialogVisible2"
+        width="50%"
+        :before-close="handleClose">
+
+        <h4>الخطوات :</h4>
+        <el-steps :active="active" finish-status="success">
+          <el-step title="Step 1" description="Model من القائمة  CovidNet قم باختيار "></el-step>
+          <el-step title="Step 2" description="قم برفع الصورة الشعاعية"></el-step>
+          <el-step title="Step 3" description="Predict قم بالضغط على الزر"></el-step>
+        </el-steps>
+        
+        <el-button style="margin-top: 12px;" @click="nextStep()">Next step</el-button>
+        
+        <span slot="footer" class="dialog-footer">
+            <el-button @click="dialogVisible2 = false">إغلاق</el-button>
+            <el-button type="primary" @click="dialogVisible = true; dialogVisible2=false; active=0">English Language </el-button>
+        </span>
+      </el-dialog>
+
+  </div>
+</body>
+
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.7.2/dist/tf.min.js"></script>
+  
+  <!-- import Vue before Element -->
+  <script src="https://unpkg.com/vue/dist/vue.js"></script>
+  <!-- import JavaScript -->
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: function() {
+        return {
+            visible: false,
+            autoup:false,
+            imageData:null,
+            status_covid:false,
+            loading2:false,
+            status_normal:false,
+            activeIndex: '1',
+            limit:1,
+            activeIndex2: '1',
+            dialogVisible: false,
+            dialogVisible2: false,
+            active : 0,
+            dialogImageUrl: '',
+            ImgdialogVisible: false,
+            model: '',
+            loading: false,
+            photo: ''
+         }
+        
+      },
+      created() {
+        //this.handleModelUpload();
+        this.loadBackend();
+      },
+      methods: {
+          loadBackend() {
+            tf.setBackend('webgl');
+            //console.log(tf.getBackend());
+          },
+          showInfo() {
+              this.dialogVisible = true;
+           },
+          handleSelect(key, keyPath) {
+            this.activeIndex2=key;
+          },
+          handleClose(done) {
+              this.dialogVisible2 = false;
+              this.dialogVisible = false;
+              active = 0;
+
+          },
+          nextStep() {
+              if(this.active++ > 2) this.active = 0;
+          },
+          handleRemove(file, fileList) {
+            let el = document.getElementsByClassName('el-upload el-upload--picture-card');
+            el[0].style = 'display:relative;';
+            this.status_covid = false;
+            this.status_normal = false;
+          },
+          handlePictureCardPreview(file) {
+            this.dialogImageUrl = file.url;
+            this.ImgdialogVisible = true;
+            this.photo = file;
+          },
+          async handleModelUpload()
+          {   
+              this.loading = true;
+              let req = new XMLHttpRequest();
+              this.model = await tf.loadGraphModel('http://127.0.0.1:81/tfjs_files/CovidNet/model.json');
+              this.loading = false;
+              
+          },
+          changePhoto(file,fileList) {
+           // console.log(fileList[0]['url']);
+            this.imageData=fileList[0]['url'];
+            let el = document.getElementsByClassName('el-upload el-upload--picture-card');
+            el[0].style = 'display:none;';
+            console.log(el);
+          },
+         async handelPredict() {
+            y=tf.tidy(() => {
+            this.loading2 = true;
+            console.log(this.loading2);
+            this.status_covid = false;
+            this.status_normal = false;
+            let photo = document.createElement('img');
+            photo.src = this.imageData;
+            let x = tf.browser.fromPixels(photo);
+            console.log(x);
+            let img=tf.image.resizeBilinear(x,[224, 224])
+            .toFloat()
+            .expandDims(0);
+
+            let warmupResult =this.model.predict(tf.zeros(img.shape));
+            warmupResult.dataSync();
+            warmupResult.dispose();
+            
+            let predictions = this.model.predict(img);
+            let target =Array.from(predictions.dataSync());
+            let className=target[0] > 0 ? 'Covid-19' : 'Normal';
+            
+
+            
+            if(className =="Covid-19"){
+                this.status_covid = true;
+            }
+            else{
+                this.status_normal = true;
+            }
+              $("#prediction-list").append(`${className}`);
+              this.loading2 = false;
+          });
+          }
+            
+      }
+    })
+  </script>
+</html>
+
+<style>
+.el-upload--picture-card {
+  height: 200px;
+  width: 250px;
+}
+body {
+  background-color: #eee;
+  background-image:url('images/bg.png');
+  color:#555!important;
+  padding: 50px;
+  font-family: Tahoma;
+}
+img:hover
+{
+  background-color: transparent!important;
+}
+#cont{
+  background-image: url(images/corona.png);
+  background-size:cover;
+}
+</style>
+
