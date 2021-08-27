@@ -4,8 +4,11 @@ This project was built using machine learning techniques and a model was trained
 
 ## How to run
 `cd JS `
+
 `npm install`
+
 `npm start`
+
 `pip install tensorfow`
 
 open chrome on:
